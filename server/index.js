@@ -17,14 +17,23 @@ app.get('/', (req, res) => {
   });
 });
 
-
 app.get('/messages', (req, res) => {
   messages.getAll().then((msg) => {
     res.json(msg);
   });
 });
 
+app.post('/messages', (req, res) => {
+  console.log(req.body); // eslint-disable-line no-console
+  messages.create(req.body).then((message) => {
+    res.json(message);
+  }).catch((error) => {
+    res.status(500);
+    res.json(error);
+  });
+});
+
 const port = process.env.PORT || 8080;
 app.listen(port, () => {
-  console.log(`listening on ${port}`);
+  console.log(`listening on ${port}`); // eslint-disable-line no-console
 });

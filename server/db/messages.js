@@ -19,6 +19,7 @@ function getAll() {
 }
 
 function create(message) {
+  if (!message.username) message.username = 'Anonymous'; // eslint-disable-line no-param-reassign
   const result = Joi.validate(message, schema);
   if (result.error == null) {
     message.created = new Date(); // eslint-disable-line no-param-reassign
