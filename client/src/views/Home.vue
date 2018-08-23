@@ -1,6 +1,15 @@
 <template>
   <div>
-    <form @submit.prevent="addMessage">
+    <button @click="showMessageForm = !showMessageForm" type="button"
+    class="btn btn-info mt-3 mb-3">
+      Toggle Message Form
+    </button>
+    <form v-if="showMessageForm" @submit.prevent="addMessage" class="mb-3">
+      <div v-if="error" class="alert alert-dismissible alert-warning">
+        <button type="button" class="close" data-dismiss="alert">&times;</button>
+        <h4 class="alert-heading">Error!</h4>
+        <p class="mb-0">{{error}}</p>
+      </div>
       <div class="form-group">
         <label for="username">Username</label>
         <input v-model="message.username" type="text" class="form-control" id="username" required>
@@ -21,7 +30,7 @@
       </div>
       <button type="submit" class="btn btn-primary">Add message</button>
     </form>
-    <div class="list-unstyled" v-for="message in messages" :key="message._id">
+    <div class="list-unstyled" v-for="message in reversedMessages" :key="message._id">
       <li class="media">
         <img v-if="message.imageURL" class="mr-3" :src="message.imageURL" :alt="message.subject">
         <div class="media-body">
@@ -42,6 +51,8 @@ const API_URL = 'http://localhost:8080/messages';
 export default {
   name: 'home',
   data: () => ({
+    showMessageForm: false,
+    error: '',
     messages: [],
     message: {
       username: 'Anoymous',
@@ -50,6 +61,11 @@ export default {
       imageURL: '',
     },
   }),
+  computed: {
+    reversedMessages() {
+      return this.messages.slice().reverse();
+    },
+  },
   mounted() {
     fetch(API_URL).then(response => response.json()).then((result) => {
       this.messages = result;
@@ -60,12 +76,20 @@ export default {
       console.log(this.message);
       fetch(API_URL, {
         method: 'POST',
-        body: JSON.strigify(this.message),
+        body: JSON.stringify(this.message),
         headers: {
           'content-type': 'application/json',
         },
       }).then(response => response.json()).then((result) => {
-        this.messages = result;
+        if (result.details) {
+          // there was an error...
+          const error = result.details.map(detail => detail.message).join('. ');
+          this.error = error;
+        } else {
+          this.error = '';
+          this.showMessageForm = false;
+          this.messages.push(result);
+        }
       });
     },
   },
